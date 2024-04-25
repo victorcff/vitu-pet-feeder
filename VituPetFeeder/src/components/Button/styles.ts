@@ -1,10 +1,12 @@
-import {StyleSheet} from 'react-native';
-import {ButtonStyleProps} from '../../../../mobile/src/types/stylesProps';
-import {buttonFontSize, windowPercentage} from '../../../../mobile/src/consts';
+import { StyleSheet } from 'react-native';
+import { ButtonStyleProps } from '../../types/stylesProps';
+import { buttonFontSize, windowPercentage } from '../../consts';
 
 const styles = (props: ButtonStyleProps) =>
   StyleSheet.create({
     buttoncontainer: {
+      position: props.bottom ? 'absolute' : 'relative',
+      bottom: props.bottom ? 20 : undefined,
       width:
         props.size &&
         props.width &&
@@ -12,19 +14,19 @@ const styles = (props: ButtonStyleProps) =>
       height:
         props.size &&
         props.width &&
-        ((windowPercentage[props.size] / 100) * props.width) / 4.5,
+        ((windowPercentage[props.size] / 100) * props.width) / 5.3,
       borderRadius:
         props.size &&
         props.width &&
         ((windowPercentage[props.size] / 100) * props.width) / 5 / 3,
-      backgroundColor: '#0082fc',
+      backgroundColor: '#eef280',
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
     },
     buttonTitle: {
       fontSize: props.size && buttonFontSize[props.size],
-      color: '#58fae1',
+      color: '#191931',
       fontWeight: 'bold',
     },
   });

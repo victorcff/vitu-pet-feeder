@@ -1,10 +1,14 @@
-import { Size } from "./general"
+import { Size } from './general';
 
 type ButtonStyleProps = {
-  size?: Size
-  width?: number
-}
+  size?: Size;
+  width?: number;
+  bottom?: boolean;
+};
 
-export type {
-  ButtonStyleProps
-}
+type CustomTextInputStyleProps = {
+  size?: Size;
+  width?: number;
+};
+
+export type { ButtonStyleProps, CustomTextInputStyleProps };

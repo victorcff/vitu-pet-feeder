@@ -1,63 +1,168 @@
-import React, { useContext, useEffect, useState } from "react"
-import { View } from "react-native"
-import styles from "./styles"
-import { ConnectToBleScreenProps } from "../../../navigator/types/screenProps"
-import Button from "../../../components/Button"
-import DevicesModal from "../../../components/DevicesModal"
-import { BleContext } from "../../../context/ble";
-import WifiManager from "react-native-wifi-reborn";
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, AppState, Linking, Text, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import ReloadIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Clipboard from '@react-native-clipboard/clipboard';
+import styles from './styles';
+import { DeviceConnectionInstructionsProps } from '../../../navigator/types/screenProps';
+import Button from '../../../components/Button';
+import WifiManager from 'react-native-wifi-reborn';
+import {
+  DEVICE_AP_PASSWORD,
+  DEVICE_AP_SSID,
+  setupNewDeviceInstructionMessage,
+} from '../../../consts';
+import AlertModal from '../../../components/AlertModal';
 
-const ConnectToBle = ({navigation}: ConnectToBleScreenProps) => {
-  const [devicesModalVisible, setDevicesModalVisible] = useState(false)
+const modalMessage = 'Não foi possível detectar uma rede Wifi.';
 
-  const {scanDevices ,scannedDevices, isConnected} = useContext(BleContext)
+const DeviceConnectionInstructions = ({
+  navigation,
+}: DeviceConnectionInstructionsProps) => {
+  const appState = useRef(AppState.currentState);
+  const [ssid, setSsid] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [connectedToDevice, setConnectedToDevice] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const checkScannedDevices = (deviceListLength: number) => {
-    if (deviceListLength !== 0) setDevicesModalVisible(true)
-  }
+  const onModalClose = () => setShowModal(false);
 
-  const checkConnectedDevice = (isConnected: boolean) => {
-    if (isConnected) {
-      setDevicesModalVisible(false)
-      navigation.navigate('InsertWifiCredentials')
-    } 
-  }
+  const goNextStep = async () => {
+    if (connectedToDevice) {
+      navigation.navigate('InsertWifiCredentials', { ssid });
+    } else {
+      try {
+        await goToSettings();
+      } catch (error) {
+        const err = error as Error;
+        console.error(err.message);
+      }
+    }
+  };
 
-  const isValidWifi = () => {
-    WifiManager.getFrequency().then(
-      frequency => {
-        console.log(frequency, typeof frequency)
+  const goToSettings = async () => {
+    try {
+      await Linking.sendIntent('android.settings.WIFI_SETTINGS');
+    } catch (error) {
+      const err = error as Error;
+      console.error(err.message);
+    }
+  };
+
+  const getWifiSsid = () => {
+    WifiManager.getCurrentWifiSSID().then(
+      ssid => {
+        if (ssid === DEVICE_AP_SSID) {
+          setConnectedToDevice(true);
+        } else {
+          setConnectedToDevice(false);
+          setSsid(ssid);
+        }
       },
       () => {
-        console.log('No wifi connected')
+        setConnectedToDevice(false);
+        setSsid('');
+      },
+    );
+  };
+
+  const refresh = () => {
+    setIsLoading(true);
+    getWifiSsid();
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    setIsLoading(true);
+    getWifiSsid();
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        getWifiSsid();
       }
-    )
-  }
 
-  useEffect(() => {
-    isValidWifi()
-  }, [])
+      appState.current = nextAppState;
+      console.log('AppState', appState.current);
+    });
 
-  useEffect(() => {
-    checkScannedDevices(scannedDevices.length)
-  }, [scannedDevices.length])
-
-  useEffect(() => {
-    checkConnectedDevice(isConnected)
-  }, [isConnected])
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Button 
+      {isLoading ? (
+        <ActivityIndicator animating color={'#80f2bd'} size={'small'} />
+      ) : (
+        <ReloadIcon
+          name="reload"
+          size={26}
+          color={'#80f2bd'}
+          style={styles.reloadIcon}
+          onPress={() => refresh()}
+        />
+      )}
+
+      <View style={styles.messageContainer}>
+        <Icon
+          name={
+            connectedToDevice
+              ? 'wifi-tethering'
+              : ssid === ''
+              ? 'wifi-off'
+              : 'wifi'
+          }
+          size={200}
+          color="#eef280"
+          style={styles.wifiStatusIndicatorIcon}
+        />
+        <Text style={styles.message}>
+          {connectedToDevice
+            ? setupNewDeviceInstructionMessage.connectedToDevice
+            : ssid === ''
+            ? setupNewDeviceInstructionMessage.noWifi
+            : setupNewDeviceInstructionMessage.noConnectedDevice}
+        </Text>
+        <View style={styles.passwordContainer}>
+          {!connectedToDevice && ssid !== '' ? (
+            <Text style={styles.apPassword}>{DEVICE_AP_PASSWORD}</Text>
+          ) : (
+            <></>
+          )}
+
+          {!connectedToDevice && ssid !== '' ? (
+            <Icon
+              name="content-copy"
+              size={30}
+              color={'#80f2bd'}
+              onPress={() => Clipboard.setString(DEVICE_AP_PASSWORD)}
+            />
+          ) : (
+            <></>
+          )}
+        </View>
+      </View>
+      <Button
         size="medium"
-        type="connect"
-        onPress={scanDevices}
+        type={connectedToDevice ? 'next' : 'connect'}
+        bottom
+        onPress={() => goNextStep()}
       />
-      <DevicesModal 
-        visible={devicesModalVisible}
+      <AlertModal
+        visible={showModal}
+        message={modalMessage}
+        type="warning"
+        onClose={() => onModalClose()}
       />
     </View>
-  )
-}
+  );
+};
 
-export default ConnectToBle
+export default DeviceConnectionInstructions;

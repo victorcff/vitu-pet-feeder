@@ -1,29 +1,36 @@
-import React from "react";
-import { Pressable, Text, useWindowDimensions } from "react-native";
-import styles from "./styles";
-import { ButtonProps, ButtonTitle } from "../../types/componentsProps";
+import React from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  Text,
+  useWindowDimensions,
+} from 'react-native';
+import styles from './styles';
+import { ButtonProps } from '../../types/componentsProps';
+import { buttonTitle } from '../../consts';
 
- const Button = ({size, type, onPress, containerStyle}: ButtonProps) => {
-  const {width} = useWindowDimensions()
+const Button = ({
+  size,
+  type,
+  onPress,
+  isLoading,
+  bottom,
+  containerStyle,
+}: ButtonProps) => {
+  const { width } = useWindowDimensions();
 
-  const buttonTitle: ButtonTitle = {
-    connect: 'Connect to Ble',
-    disconnect: 'Disconnect Ble',
-    sendMessage: 'Send Message',
-    saveWifiCredentials: 'Save Credentials'
-  }
-
-  const getButtonTitle = () => buttonTitle[type]
+  const getButtonTitle = () => buttonTitle[type];
   return (
-    <Pressable 
-      style={[styles({size, width}).buttoncontainer, containerStyle]} 
-      onPress={onPress}
-    >
-      <Text style={styles({size}).buttonTitle}>
-        {getButtonTitle()}
-      </Text>
+    <Pressable
+      style={[styles({ size, width, bottom }).buttoncontainer, containerStyle]}
+      onPress={onPress}>
+      {isLoading ? (
+        <ActivityIndicator animating color={'#191931'} size={20} />
+      ) : (
+        <Text style={styles({ size }).buttonTitle}>{getButtonTitle()}</Text>
+      )}
     </Pressable>
-  )
-}
+  );
+};
 
-export default Button
+export default Button;

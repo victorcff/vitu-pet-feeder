@@ -1,5 +1,3 @@
-type Size = 'small' | 'medium' | 'large'
+type Size = 'small' | 'medium' | 'large';
 
-export type {
-  Size
-}
+export type {Size};

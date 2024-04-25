@@ -1,16 +1,17 @@
 type WindowPercentage = {
-  small: number
-  medium: number
-  large: number
-}
+  small: number;
+  medium: number;
+  large: number;
+};
 
 type ButtonFontSize = {
-  small: 16
-  medium: 20
-  large: 24
-}
+  small: number;
+  medium: number;
+  large: number;
+};
 
-export type {
-  WindowPercentage,
-  ButtonFontSize
-}
+type Paddings = {
+  screenBorder: number;
+};
+
+export type { WindowPercentage, ButtonFontSize, Paddings };

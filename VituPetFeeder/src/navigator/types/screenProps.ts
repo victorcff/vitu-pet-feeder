@@ -1,18 +1,26 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack'
-import { ConnectingToWifiStackParamsList } from './paramsList'
-import { CompositeScreenProps } from '@react-navigation/native'
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  DrawerStackParamsList,
+  SetupNewDeviceStackParamsList,
+} from './paramsList';
 
-type ConnectToBleScreenProps = NativeStackScreenProps<
-  ConnectingToWifiStackParamsList,
-  'ConnectToBle'
->
+type DeviceConnectionInstructionsProps = NativeStackScreenProps<
+  SetupNewDeviceStackParamsList,
+  'DeviceConnectionInstructions'
+>;
 
 type InsertWifiCredentialsScreenProps = NativeStackScreenProps<
-  ConnectingToWifiStackParamsList,
+  SetupNewDeviceStackParamsList,
   'InsertWifiCredentials'
->
+>;
+
+type FeedingControlDashboardScreenProps = NativeStackScreenProps<
+  DrawerStackParamsList,
+  'FeedingControlDashboard'
+>;
 
 export type {
-  ConnectToBleScreenProps,
-  InsertWifiCredentialsScreenProps
-}
+  DeviceConnectionInstructionsProps,
+  InsertWifiCredentialsScreenProps,
+  FeedingControlDashboardScreenProps,
+};
