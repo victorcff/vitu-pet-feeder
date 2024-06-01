@@ -5,6 +5,7 @@ import styles from './styles';
 import { modalTitle } from '../../consts';
 import Button from '../Button';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { alertModalMainIcon } from '../../consts/colors';
 
 const AlertModal = ({
   visible,
@@ -17,6 +18,7 @@ const AlertModal = ({
     if (type === 'success') return 'checkmark-circle';
     else return 'warning';
   };
+
   return (
     <Modal
       animationType="slide"
@@ -26,18 +28,24 @@ const AlertModal = ({
       <View style={styles.modalContainer}>
         <View style={styles.modalView}>
           <View style={styles.iconsContainer}>
-            <Icon name={getIconName()} size={60} color="#0ff31a" />
+            <Icon
+              name={getIconName()}
+              size={60}
+              color={alertModalMainIcon[type]}
+            />
             <View style={styles.closeIconContainer}>
               <Icon
                 name="close-circle"
                 size={26}
-                color={'#ff0404'}
-                onPress={() => onClose()}
+                color="#ff0404"
+                onPress={onClose}
               />
             </View>
           </View>
           <View style={styles.header}>
-            <Text style={styles.title}>{modalTitle[type]}</Text>
+            <Text style={[styles.title, { color: alertModalMainIcon[type] }]}>
+              {modalTitle[type]}
+            </Text>
           </View>
           <Text style={styles.message}>{message}</Text>
           {buttonGroup && (

@@ -15,11 +15,17 @@ type ButtonTitle = {
   save: string;
   close: string;
   connect: string;
+  login: string;
+  createUser: string;
+  setupNewDevice: string;
+  yes: string;
+  no: string;
 };
 
 type ModalTitle = {
   warning: string;
   success: string;
+  error: string;
 };
 
 type CustomModalButtonGroup = {
@@ -28,8 +34,10 @@ type CustomModalButtonGroup = {
   onPress: () => void;
 };
 
+type CustomModalType = 'warning' | 'success' | 'error';
+
 type CustomModalProps = {
-  type: 'warning' | 'success';
+  type: CustomModalType;
   visible: boolean;
   message: string;
   onClose: () => void;
@@ -39,6 +47,7 @@ type CustomModalProps = {
 type CustomTextInputProps = {
   size: Size;
   textInputProps: TextInputProps;
+  isPassword?: boolean;
 };
 
 export type {
@@ -47,4 +56,6 @@ export type {
   CustomModalProps,
   ModalTitle,
   CustomTextInputProps,
+  CustomModalType,
+  CustomModalButtonGroup,
 };

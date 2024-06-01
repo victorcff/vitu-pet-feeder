@@ -1,11 +1,12 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
 import { SetupNewDeviceStackParamsList } from './types/paramsList';
 import DeviceConnectionInstructions from '../screens/SetupNewDevice/DeviceConnectionInstructions';
 import InsertWifiCredentials from '../screens/SetupNewDevice/InsertWifiCredentials';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import InsertDeviceName from '../screens/SetupNewDevice/InsertDeviceName';
 
 const SetupNewDeviceStack =
-  createStackNavigator<SetupNewDeviceStackParamsList>();
+  createNativeStackNavigator<SetupNewDeviceStackParamsList>();
 
 const SetupNewDevice = () => (
   <SetupNewDeviceStack.Navigator initialRouteName="DeviceConnectionInstructions">
@@ -17,6 +18,11 @@ const SetupNewDevice = () => (
     <SetupNewDeviceStack.Screen
       name="InsertWifiCredentials"
       component={InsertWifiCredentials}
+      options={{ headerShown: false }}
+    />
+    <SetupNewDeviceStack.Screen
+      name="InsertDeviceName"
+      component={InsertDeviceName}
       options={{ headerShown: false }}
     />
   </SetupNewDeviceStack.Navigator>

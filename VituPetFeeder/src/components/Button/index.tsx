@@ -23,7 +23,8 @@ const Button = ({
   return (
     <Pressable
       style={[styles({ size, width, bottom }).buttoncontainer, containerStyle]}
-      onPress={onPress}>
+      onPress={onPress}
+      disabled={isLoading}>
       {isLoading ? (
         <ActivityIndicator animating color={'#191931'} size={20} />
       ) : (

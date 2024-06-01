@@ -1,35 +1,42 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, Linking, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Linking,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import WifiManager from 'react-native-wifi-reborn';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ReloadIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Clipboard from '@react-native-clipboard/clipboard';
 import styles from './styles';
 import { DeviceConnectionInstructionsProps } from '../../../navigator/types/screenProps';
 import Button from '../../../components/Button';
-import WifiManager from 'react-native-wifi-reborn';
 import {
   DEVICE_AP_PASSWORD,
   DEVICE_AP_SSID,
   setupNewDeviceInstructionMessage,
 } from '../../../consts';
-import AlertModal from '../../../components/AlertModal';
-
-const modalMessage = 'Não foi possível detectar uma rede Wifi.';
+import SetupNewDeviceServices from '../../../services/SetupNewDeviceServices';
+import { InsertDeviceNameScreenProps } from '../../../navigator/types/paramsList';
 
 const DeviceConnectionInstructions = ({
   navigation,
 }: DeviceConnectionInstructionsProps) => {
   const appState = useRef(AppState.currentState);
   const [ssid, setSsid] = useState('');
-  const [showModal, setShowModal] = useState(false);
   const [connectedToDevice, setConnectedToDevice] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const onModalClose = () => setShowModal(false);
 
   const goNextStep = async () => {
     if (connectedToDevice) {
-      navigation.navigate('InsertWifiCredentials', { ssid });
+      try {
+        await Linking.openURL('http://192.168.4.1');
+        navigation.navigate('InsertDeviceName');
+      } catch (_error) {
+        const error = _error as Error;
+        console.error(error.message);
+      }
     } else {
       try {
         await goToSettings();
@@ -49,14 +56,25 @@ const DeviceConnectionInstructions = ({
     }
   };
 
+  const getMacAddress = async () => {
+    try {
+      const {
+        data: { mac_address },
+      } = await SetupNewDeviceServices.getMacAddress();
+    } catch (_error) {
+      const error = _error as Error;
+      console.error(error.message);
+    }
+  };
+
   const getWifiSsid = () => {
     WifiManager.getCurrentWifiSSID().then(
-      ssid => {
-        if (ssid === DEVICE_AP_SSID) {
+      wifiSsid => {
+        if (wifiSsid === DEVICE_AP_SSID) {
           setConnectedToDevice(true);
         } else {
           setConnectedToDevice(false);
-          setSsid(ssid);
+          setSsid(wifiSsid);
         }
       },
       () => {
@@ -66,16 +84,8 @@ const DeviceConnectionInstructions = ({
     );
   };
 
-  const refresh = () => {
-    setIsLoading(true);
-    getWifiSsid();
-    setIsLoading(false);
-  };
-
   useEffect(() => {
-    setIsLoading(true);
     getWifiSsid();
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -97,28 +107,10 @@ const DeviceConnectionInstructions = ({
   }, []);
 
   return (
-    <View style={styles.container}>
-      {isLoading ? (
-        <ActivityIndicator animating color={'#80f2bd'} size={'small'} />
-      ) : (
-        <ReloadIcon
-          name="reload"
-          size={26}
-          color={'#80f2bd'}
-          style={styles.reloadIcon}
-          onPress={() => refresh()}
-        />
-      )}
-
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.messageContainer}>
         <Icon
-          name={
-            connectedToDevice
-              ? 'wifi-tethering'
-              : ssid === ''
-              ? 'wifi-off'
-              : 'wifi'
-          }
+          name={connectedToDevice ? 'wifi-tethering' : 'wifi'}
           size={200}
           color="#eef280"
           style={styles.wifiStatusIndicatorIcon}
@@ -126,8 +118,6 @@ const DeviceConnectionInstructions = ({
         <Text style={styles.message}>
           {connectedToDevice
             ? setupNewDeviceInstructionMessage.connectedToDevice
-            : ssid === ''
-            ? setupNewDeviceInstructionMessage.noWifi
             : setupNewDeviceInstructionMessage.noConnectedDevice}
         </Text>
         <View style={styles.passwordContainer}>
@@ -136,7 +126,6 @@ const DeviceConnectionInstructions = ({
           ) : (
             <></>
           )}
-
           {!connectedToDevice && ssid !== '' ? (
             <Icon
               name="content-copy"
@@ -155,13 +144,7 @@ const DeviceConnectionInstructions = ({
         bottom
         onPress={() => goNextStep()}
       />
-      <AlertModal
-        visible={showModal}
-        message={modalMessage}
-        type="warning"
-        onClose={() => onModalClose()}
-      />
-    </View>
+    </ScrollView>
   );
 };
 

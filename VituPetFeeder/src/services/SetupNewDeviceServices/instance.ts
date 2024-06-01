@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { DEVICE_ACCESS_POINT_BASE_URL, SERVER_BASE_URL } from '../consts';
 
-const SetupNewDeviceServicesInstance = axios.create({
-  baseURL: 'http://192.168.4.1',
+const SetupNewDeviceServicesAPInstance = axios.create({
+  baseURL: DEVICE_ACCESS_POINT_BASE_URL,
   timeout: 3000,
   timeoutErrorMessage: 'Timeout de 3 segundos. Tente novamente.',
   headers: {
@@ -10,4 +11,17 @@ const SetupNewDeviceServicesInstance = axios.create({
   },
 });
 
-export default SetupNewDeviceServicesInstance;
+const SetupNewDeviceServicesServerInstance = axios.create({
+  baseURL: SERVER_BASE_URL.DESENV,
+  timeout: 60000,
+  timeoutErrorMessage: 'Timeout de 1 minuto. Tente novamente.',
+  headers: {
+    'Content-Type': 'application/json',
+    accept: 'application/json',
+  },
+});
+
+export {
+  SetupNewDeviceServicesAPInstance,
+  SetupNewDeviceServicesServerInstance,
+};

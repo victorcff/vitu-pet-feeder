@@ -26,11 +26,6 @@ const InsertWifiCredentials = ({
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const onCloseModal = () => {
-    setShowModal(false);
-    navigation.navigate('Drawer', { screen: 'FeedingControlDashboard' });
-  };
-
   const ssidInputProps: TextInputProps = {
     autoFocus: ssid !== '' ? false : true,
     defaultValue: ssid,
@@ -48,7 +43,6 @@ const InsertWifiCredentials = ({
     onChangeText: text => setPassword(text),
     placeholder: 'Senha',
     placeholderTextColor: '#80f2bd6b',
-    secureTextEntry: true,
     style: styles.textInput,
   };
 
@@ -77,13 +71,14 @@ const InsertWifiCredentials = ({
       const { data } = await SetupNewDeviceServices.sendWifiCredentials(
         reqBody,
       );
-      setModalMessage(data);
+      const macAddress = data;
       setIsLoading(false);
-      setShowModal(true);
+      navigation.navigate('InsertDeviceName', { macAddress });
     } catch (error) {
       const err = error as Error;
-      console.error(err.message);
+      setModalMessage(err.message);
       setIsLoading(false);
+      setShowModal(true);
     }
   };
 
@@ -97,7 +92,11 @@ const InsertWifiCredentials = ({
       </View>
       <View>
         <CustomTextInput size={'large'} textInputProps={ssidInputProps} />
-        <CustomTextInput size={'large'} textInputProps={passwordInputProps} />
+        <CustomTextInput
+          size={'large'}
+          textInputProps={passwordInputProps}
+          isPassword
+        />
       </View>
       <View>
         <Button
@@ -109,7 +108,7 @@ const InsertWifiCredentials = ({
       </View>
       <AlertModal
         message={modalMessage}
-        onClose={onCloseModal}
+        onClose={() => setShowModal(false)}
         type="success"
         visible={showModal}
       />

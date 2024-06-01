@@ -1,29 +1,45 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 
 type RootStackParamsList = {
-  DrawerStack: NavigatorScreenParams<DrawerStackParamsList>;
+  HomeStack: NavigatorScreenParams<HomeStackParamsList>;
+  AuthStack: NavigatorScreenParams<AuthStackParamsList>;
 };
 
 type InsertWifiCredentialsScreenProps = {
   ssid: string;
 };
 
+type InsertDeviceNameScreenProps = {
+  macAddress: string;
+};
+
 type SetupNewDeviceStackParamsList = {
   DeviceConnectionInstructions: undefined;
   InsertWifiCredentials: InsertWifiCredentialsScreenProps;
+  InsertDeviceName: undefined;
 };
 
-type FeedingControlInputStackParamsList = {
+type FeedingControlStackParamsList = {
   FeedingControlDashboard: undefined;
+  FeederMealsList: undefined;
 };
 
-type DrawerStackParamsList = {
-  FeedingControlDashboard: NavigatorScreenParams<FeedingControlInputStackParamsList>;
+type HomeStackParamsList = {
+  FeedingControl: NavigatorScreenParams<FeedingControlStackParamsList>;
   SetupNewDevice: NavigatorScreenParams<SetupNewDeviceStackParamsList>;
+};
+
+type AuthStackParamsList = {
+  Login: undefined;
+  CreateUser: undefined;
+  Logout: undefined;
 };
 
 export type {
   RootStackParamsList,
   SetupNewDeviceStackParamsList,
-  DrawerStackParamsList,
+  HomeStackParamsList,
+  FeedingControlStackParamsList,
+  AuthStackParamsList,
+  InsertDeviceNameScreenProps,
 };

@@ -8,6 +8,7 @@ import 'react-native-gesture-handler';
 
 import AppNavigator from './src/navigator';
 import AlertModal from './src/components/AlertModal';
+import { AuthProvider } from './src/context/Auth/auth';
 
 function App(): React.JSX.Element {
   const [showModal, setShowModal] = useState(false);
@@ -76,7 +77,7 @@ function App(): React.JSX.Element {
   }, []);
 
   return (
-    <>
+    <AuthProvider>
       <StatusBar barStyle={'light-content'} backgroundColor={'#302f2f'} />
       {!isLoading ? (
         <>
@@ -91,7 +92,7 @@ function App(): React.JSX.Element {
       ) : (
         <ActivityIndicator animating color={'#eef280'} size={'large'} />
       )}
-    </>
+    </AuthProvider>
   );
 }
 

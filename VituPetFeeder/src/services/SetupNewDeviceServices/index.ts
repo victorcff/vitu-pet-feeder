@@ -1,7 +1,9 @@
-import { sendWifiCredentials } from './api';
+import { createDevice, getMacAddress, sendWifiCredentials } from './api';
 
 const SetupNewDeviceServices = {
-  sendWifiCredentials: sendWifiCredentials,
+  sendWifiCredentials,
+  createDevice,
+  getMacAddress,
 };
 
 export default SetupNewDeviceServices;

@@ -11,6 +11,13 @@ const styles = (props: CustomTextInputStyleProps) =>
         (windowPercentage[props.size] / 100) * props.width,
       borderBottomWidth: 1,
       borderBottomColor: '#80f2bd',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginVertical: 15,
+    },
+    textInput: {
+      width: '85%',
+      // backgroundColor: '#ffffff',
     },
   });
 
