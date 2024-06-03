@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   AuthStackParamsList,
+  FeederMealsStackParamsList,
   FeedingControlStackParamsList,
   HomeStackParamsList,
   SetupNewDeviceStackParamsList,
@@ -29,7 +30,18 @@ type FeedingControlDashboardScreenProps = CompositeScreenProps<
     FeedingControlStackParamsList,
     'FeedingControlDashboard'
   >,
-  DrawerScreenProps<HomeStackParamsList>
+  CompositeScreenProps<
+    DrawerScreenProps<HomeStackParamsList>,
+    NativeStackScreenProps<FeederMealsStackParamsList>
+  >
+>;
+
+type ReconnectFeederDeviceScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<FeedingControlStackParamsList, 'ReconnectFeederDevice'>,
+  CompositeScreenProps<
+    DrawerScreenProps<HomeStackParamsList>,
+    NativeStackScreenProps<SetupNewDeviceStackParamsList>
+  >
 >;
 
 type LoginScreenProps = CompositeScreenProps<
@@ -47,9 +59,14 @@ type CreateUserScreenProps = CompositeScreenProps<
 
 type LogoutScreenProps = NativeStackScreenProps<AuthStackParamsList, 'Logout'>;
 
-type FeederMealsListScreenProps = BottomTabScreenProps<
-  FeedingControlStackParamsList,
-  'FeederMealsList'
+type FeederMealsListScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<FeederMealsStackParamsList, 'FeederMealsList'>,
+  BottomTabScreenProps<FeedingControlStackParamsList>
+>;
+
+type UpdateMealScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<FeederMealsStackParamsList, 'UpdateMeal'>,
+  BottomTabScreenProps<FeedingControlStackParamsList>
 >;
 
 export type {
@@ -61,4 +78,6 @@ export type {
   CreateUserScreenProps,
   FeederMealsListScreenProps,
   LogoutScreenProps,
+  ReconnectFeederDeviceScreenProps,
+  UpdateMealScreenProps,
 };

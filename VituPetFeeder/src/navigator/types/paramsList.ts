@@ -1,4 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
+import { FeederDevice, Meal } from '../../types/api';
 
 type RootStackParamsList = {
   HomeStack: NavigatorScreenParams<HomeStackParamsList>;
@@ -19,9 +20,24 @@ type SetupNewDeviceStackParamsList = {
   InsertDeviceName: undefined;
 };
 
+type FeedingControlDashboardScreenProps = {
+  createdDevice?: FeederDevice;
+};
+
 type FeedingControlStackParamsList = {
-  FeedingControlDashboard: undefined;
+  FeedingControlDashboard: FeedingControlDashboardScreenProps;
+  FeederMeals: NavigatorScreenParams<FeederMealsStackParamsList>;
+  ReconnectFeederDevice: undefined;
+};
+
+type UpdateMealScreenProps = {
+  action: 'create' | 'update';
+  meal?: Meal;
+};
+
+type FeederMealsStackParamsList = {
   FeederMealsList: undefined;
+  UpdateMeal: UpdateMealScreenProps;
 };
 
 type HomeStackParamsList = {
@@ -41,5 +57,6 @@ export type {
   HomeStackParamsList,
   FeedingControlStackParamsList,
   AuthStackParamsList,
+  FeederMealsStackParamsList,
   InsertDeviceNameScreenProps,
 };

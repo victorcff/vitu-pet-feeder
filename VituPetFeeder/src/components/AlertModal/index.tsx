@@ -53,7 +53,7 @@ const AlertModal = ({
               {buttonGroup.map(button => (
                 <Button
                   type={button.title}
-                  size={buttonGroup.length <= 2 ? 'medium' : 'small'}
+                  size={'small'}
                   onPress={button.onPress}
                 />
               ))}

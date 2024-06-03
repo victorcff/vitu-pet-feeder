@@ -1,12 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  AppState,
-  Linking,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { AppState, Linking, Text, View } from 'react-native';
 import WifiManager from 'react-native-wifi-reborn';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -18,8 +11,6 @@ import {
   DEVICE_AP_SSID,
   setupNewDeviceInstructionMessage,
 } from '../../../consts';
-import SetupNewDeviceServices from '../../../services/SetupNewDeviceServices';
-import { InsertDeviceNameScreenProps } from '../../../navigator/types/paramsList';
 
 const DeviceConnectionInstructions = ({
   navigation,
@@ -53,17 +44,6 @@ const DeviceConnectionInstructions = ({
     } catch (error) {
       const err = error as Error;
       console.error(err.message);
-    }
-  };
-
-  const getMacAddress = async () => {
-    try {
-      const {
-        data: { mac_address },
-      } = await SetupNewDeviceServices.getMacAddress();
-    } catch (_error) {
-      const error = _error as Error;
-      console.error(error.message);
     }
   };
 
@@ -107,7 +87,7 @@ const DeviceConnectionInstructions = ({
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <View style={styles.messageContainer}>
         <Icon
           name={connectedToDevice ? 'wifi-tethering' : 'wifi'}
@@ -130,7 +110,7 @@ const DeviceConnectionInstructions = ({
             <Icon
               name="content-copy"
               size={30}
-              color={'#80f2bd'}
+              color="#80f2bd"
               onPress={() => Clipboard.setString(DEVICE_AP_PASSWORD)}
             />
           ) : (
@@ -144,7 +124,7 @@ const DeviceConnectionInstructions = ({
         bottom
         onPress={() => goNextStep()}
       />
-    </ScrollView>
+    </View>
   );
 };
 

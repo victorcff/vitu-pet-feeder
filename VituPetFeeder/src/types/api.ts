@@ -1,8 +1,3 @@
-type Meal = {
-  time: `${number}:${number}`;
-  weight: number;
-};
-
 type CreateDeviceRequest = {
   name: string;
   owner_id: number;
@@ -17,6 +12,7 @@ type FeederDevice = {
   id: number;
   name: string;
   ownerId: number;
+  meals: Meal[];
 };
 
 type AuthenticateUserRequest = {
@@ -51,6 +47,25 @@ type GetMacAddressResponse = {
   mac_address: string;
 };
 
+type MealBase = {
+  id: number;
+  name: string;
+  weight: string;
+  time: string;
+};
+
+type MealResponse = MealBase & {
+  device_id: number;
+};
+
+type Meal = MealBase & {
+  deviceId: number;
+};
+
+type CreateMealRequest = Omit<MealResponse, 'id'>;
+
+type UpdateMealRequest = MealResponse;
+
 export type {
   CreateDeviceResponse,
   CreateDeviceRequest,
@@ -62,4 +77,8 @@ export type {
   LoginUserResponse,
   GetRealTimeResponse,
   GetMacAddressResponse,
+  Meal,
+  MealResponse,
+  CreateMealRequest,
+  UpdateMealRequest,
 };

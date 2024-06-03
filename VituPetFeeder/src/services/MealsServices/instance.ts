@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { SERVER_BASE_URL } from '../consts';
 
-const FeederDeviceInstance = axios.create({
-  baseURL: `${SERVER_BASE_URL.DESENV}/feeder-devices`,
+const MealsInstance = axios.create({
+  baseURL: `${SERVER_BASE_URL.DESENV}/meals`,
   timeout: 10000,
   timeoutErrorMessage: 'Timeout de 10 segundos. Tente novamente.',
   headers: {
@@ -11,4 +11,4 @@ const FeederDeviceInstance = axios.create({
   },
 });
 
-export default FeederDeviceInstance;
+export default MealsInstance;

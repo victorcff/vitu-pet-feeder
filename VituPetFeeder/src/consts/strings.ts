@@ -2,6 +2,8 @@ import { ButtonTitle, ModalTitle } from '../types/componentsProps';
 
 const DEVICE_AP_PASSWORD = '12345678';
 const DEVICE_AP_SSID = 'VITU PET FEEDER.V1';
+const RECONNECT_FEEDER_DEVICE_WARNING_MESSAGE =
+  'Tem certeza que deseja reconectar o dispositivo alimentador?';
 
 const setupNewDeviceInstructionMessage = {
   noWifi: 'Conecte-se a uma rede Wifi para configurar seu novo dispositivo',
@@ -17,6 +19,7 @@ const buttonTitle: ButtonTitle = {
   save: 'SALVAR',
   close: 'FECHAR',
   connect: 'CONECTAR',
+  reconnect: 'RECONECTAR',
   login: 'LOGIN',
   createUser: 'CRIAR',
   setupNewDevice: 'CONFIGURAR DISPOSITIVO',
@@ -33,6 +36,7 @@ const modalTitle: ModalTitle = {
 export {
   DEVICE_AP_PASSWORD,
   DEVICE_AP_SSID,
+  RECONNECT_FEEDER_DEVICE_WARNING_MESSAGE,
   buttonTitle,
   modalTitle,
   setupNewDeviceInstructionMessage,

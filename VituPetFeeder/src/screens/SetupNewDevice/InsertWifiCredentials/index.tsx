@@ -10,8 +10,6 @@ import {
   SSID_MAX_LENGTH,
   WIFI_PASSWORD_MAX_LENGTH,
 } from '../../../consts/values';
-import { fillStringWithWhiteSpace } from '../../../utils/stringTransform';
-import SetupNewDeviceServices from '../../../services/SetupNewDeviceServices';
 import AlertModal from '../../../components/AlertModal';
 
 const InsertWifiCredentials = ({
@@ -46,42 +44,6 @@ const InsertWifiCredentials = ({
     style: styles.textInput,
   };
 
-  const sendWifiCredentials = async () => {
-    const formattedSsid = fillStringWithWhiteSpace(wifiSsid, SSID_MAX_LENGTH);
-    const formattedPassword = fillStringWithWhiteSpace(
-      password,
-      WIFI_PASSWORD_MAX_LENGTH,
-    );
-    const ssidRealLength = fillStringWithWhiteSpace(
-      wifiSsid.length.toString(),
-      2,
-    );
-    const passwordRealLength = fillStringWithWhiteSpace(
-      password.length.toString(),
-      2,
-    );
-    const reqBody = formattedSsid.concat(
-      ssidRealLength,
-      formattedPassword,
-      passwordRealLength,
-    );
-
-    try {
-      setIsLoading(true);
-      const { data } = await SetupNewDeviceServices.sendWifiCredentials(
-        reqBody,
-      );
-      const macAddress = data;
-      setIsLoading(false);
-      navigation.navigate('InsertDeviceName', { macAddress });
-    } catch (error) {
-      const err = error as Error;
-      setModalMessage(err.message);
-      setIsLoading(false);
-      setShowModal(true);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.messageContainer}>
@@ -102,7 +64,7 @@ const InsertWifiCredentials = ({
         <Button
           size="medium"
           type="save"
-          onPress={() => sendWifiCredentials()}
+          onPress={() => {}}
           isLoading={isLoading}
         />
       </View>

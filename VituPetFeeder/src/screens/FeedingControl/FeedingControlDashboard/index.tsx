@@ -10,18 +10,19 @@ import WeightIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FeedingControlDashboardScreenProps } from '../../../navigator/types/screenProps';
 import styles from './styles';
 import { useAuth } from '../../../context/Auth/auth';
-import { FeederDevice } from '../../../types/api';
-import { isFeederDevice, isUser } from '../../../utils/checkTypes';
+import { isUser } from '../../../utils/checkTypes';
 import FeederDevicesServices from '../../../services/FeederDevices';
 import AlertModal from '../../../components/AlertModal';
 import Button from '../../../components/Button';
 import { CustomModalType } from '../../../types/componentsProps';
 import { formatStringOrNumberToDecimalStr } from '../../../utils/stringTransform';
+import { FeederDevice } from '../../../types/api';
 
 const FeedingControlDashboard = ({
   navigation,
   route,
 }: FeedingControlDashboardScreenProps) => {
+  const createdDevice = route.params?.createdDevice;
   const { user } = useAuth();
   const [device, setDevice] = useState({} as FeederDevice);
   const [realTimeWeight, setRealTimeWeight] = useState('');
@@ -49,24 +50,21 @@ const FeedingControlDashboard = ({
   }, []);
 
   useEffect(() => {
+    if (createdDevice) setDevice(createdDevice);
     if (isUser(user)) {
-      if (user.feederDevices.length > 0) setDevice(user.feederDevices[0]);
-      console.log(user);
+      if (user.feederDevices) setDevice(user.feederDevices[0]);
     }
   }, []);
 
   useEffect(() => {
-    if (isFeederDevice(device)) getRealTimeWeight();
+    if (device) getRealTimeWeight();
   }, [device]);
 
   return (
     <View style={styles.container}>
-      {isFeederDevice(device) ? (
+      {device ? (
         <>
           <View style={styles.deviceMajorInfo}>
-            {/* <View style={styles.logoContainer}>
-              <Logo name="pets" size={100} color="#80f2bd" />
-            </View> */}
             <Text style={styles.deviceName}>{device.name}</Text>
           </View>
           <TouchableOpacity
@@ -87,7 +85,9 @@ const FeedingControlDashboard = ({
             )}
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('FeederMealsList')}>
+            onPress={() =>
+              navigation.navigate('FeederMeals', { screen: 'FeederMealsList' })
+            }>
             <Image
               style={styles.mealsButton}
               source={require('../../../../assets/meals-logo.png')}

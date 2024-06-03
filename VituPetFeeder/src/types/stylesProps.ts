@@ -1,3 +1,4 @@
+import { CustomModalType } from './componentsProps';
 import { Size } from './general';
 
 type ButtonStyleProps = {

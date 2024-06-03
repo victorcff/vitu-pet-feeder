@@ -50,7 +50,10 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   buttonGroupContainer: {
-    flexDirection: 'row',
+    justifyContent: 'space-between',
+    height: '20%',
+    width: '100%',
+    alignItems: 'center',
   },
 });
 

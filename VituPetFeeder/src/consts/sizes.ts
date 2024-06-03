@@ -9,6 +9,6 @@ const windowPercentage: WindowPercentage = {
 const buttonFontSize: ButtonFontSize = {
   small: 20,
   medium: 28,
-  large: 24,
+  large: 30,
 };
 export { buttonFontSize, windowPercentage };

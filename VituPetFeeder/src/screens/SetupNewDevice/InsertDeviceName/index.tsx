@@ -5,14 +5,14 @@ import Button from '../../../components/Button';
 import { setupNewDeviceInstructionMessage } from '../../../consts';
 import CustomTextInput from '../../../components/CustomTextInput';
 import { DEVICE_NAME_MAX_LENGTH } from '../../../consts/values';
-import SetupNewDeviceServices from '../../../services/SetupNewDeviceServices';
 import AlertModal from '../../../components/AlertModal';
-import { CreateDeviceRequest, User } from '../../../types/api';
+import { CreateDeviceRequest, FeederDevice, User } from '../../../types/api';
 import { InsertDeviceNameScreenProps } from '../../../navigator/types/screenProps';
 import { useAuth } from '../../../context/Auth/auth';
-import { isUser } from '../../../utils/checkTypes';
+import { isFeederDevice, isUser } from '../../../utils/checkTypes';
 import styles from './styles';
 import UserServices from '../../../services/UserServices';
+import FeederDevicesServices from '../../../services/FeederDevices';
 
 const InsertDeviceName = ({
   navigation,
@@ -30,9 +30,6 @@ const InsertDeviceName = ({
 
   const onCloseModal = () => {
     setShowModal(false);
-    navigation.jumpTo('FeedingControl', {
-      screen: 'FeedingControlDashboard',
-    });
   };
 
   const nameInputProps: TextInputProps = {
@@ -57,15 +54,21 @@ const InsertDeviceName = ({
         owner_id: currentUser.id,
         mac_address: macAddress,
       };
-      console.log(params);
-      await SetupNewDeviceServices.createDevice(params);
+      const { data } = await FeederDevicesServices.createDevice(params);
+      const device: FeederDevice = {
+        id: data.id,
+        name: data.name,
+        ownerId: data.owner_id,
+      };
       if (isUser(user)) {
         const { data } = await UserServices.getUserById(user.id);
         updateUser(data);
       }
-      navigation.navigate('FeedingControl', {
-        screen: 'FeedingControlDashboard',
-      });
+      if (isFeederDevice(device))
+        navigation.navigate('FeedingControl', {
+          screen: 'FeedingControlDashboard',
+          params: { createdDevice: device },
+        });
       setIsLoading(false);
     } catch (error) {
       const err = error as Error;
@@ -78,7 +81,7 @@ const InsertDeviceName = ({
     try {
       const {
         data: { mac_address },
-      } = await SetupNewDeviceServices.getMacAddress();
+      } = await FeederDevicesServices.getMacAddress();
       setMacAddress(mac_address);
     } catch (_error) {
       const error = _error as Error;
@@ -130,7 +133,7 @@ const InsertDeviceName = ({
       <AlertModal
         message={modalMessage}
         onClose={onCloseModal}
-        type="success"
+        type="error"
         visible={showModal}
       />
     </View>

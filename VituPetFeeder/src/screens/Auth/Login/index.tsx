@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Platform, Text, TextInputProps, View } from 'react-native';
+import { Image, Text, TextInputProps, View } from 'react-native';
 import { AxiosError } from 'axios';
+import * as LocalAuthentication from 'expo-local-authentication';
 import styles from './styles';
 import { LoginScreenProps } from '../../../navigator/types/screenProps';
 import CustomTextInput from '../../../components/CustomTextInput';
@@ -13,14 +14,22 @@ import AlertModal from '../../../components/AlertModal';
 import AuthServices from '../../../services/Auth';
 import { AuthenticateUserRequest, User } from '../../../types/api';
 import { useAuth } from '../../../context/Auth/auth';
-import { isLoginParams, isString, isUser } from '../../../utils/checkTypes';
+import {
+  isFeederDeviceArray,
+  isLoginParams,
+  isString,
+  isUser,
+} from '../../../utils/checkTypes';
 import {
   getAsyncStorageData,
   storeAsyncStorageData,
 } from '../../../storage/utils';
 import { LOGIN_CREDENTIALS_STORAGE } from '../../../consts/storage';
-import { CustomModalButtonGroup } from '../../../types/componentsProps';
-import { useFocusEffect } from '@react-navigation/native';
+import {
+  CustomModalButtonGroup,
+  CustomModalType,
+} from '../../../types/componentsProps';
+import { useFeederDevices } from '../../../context/FeederDevices';
 
 const Login = ({ navigation, route }: LoginScreenProps) => {
   const [username, setUsername] = useState('');
@@ -31,35 +40,42 @@ const Login = ({ navigation, route }: LoginScreenProps) => {
   const [modalButtonGroup, setModalButtonGroup] = useState<
     CustomModalButtonGroup[] | undefined
   >(undefined);
-  const [supportedBiometryTypes, setSupportedBiometryTypes] = useState({
-    faceId: false,
-    fingerprint: false,
-  });
+  const [modalType, setModalType] = useState<CustomModalType>('error');
 
   const { signIn } = useAuth();
+  const { setFeederDevices } = useFeederDevices();
 
   const authenticate = async (loginParams: AuthenticateUserRequest) => {
     try {
-      setIsLoading(true);
-      const { data } = await AuthServices.login(loginParams);
-      const user: User = {
-        id: data.id,
-        username: data.username,
-        feederDevices: data.feeder_devices,
-      };
-      if (isUser(user)) {
-        signIn(user);
-        await storeAsyncStorageData(
-          LOGIN_CREDENTIALS_STORAGE,
-          JSON.stringify(loginParams),
-        );
-        if (user.feederDevices.length > 0) navigation.navigate('HomeStack');
-        else
-          navigation.navigate('SetupNewDevice', {
-            screen: 'DeviceConnectionInstructions',
-          });
+      const auth = await LocalAuthentication.authenticateAsync({
+        cancelLabel: 'Autenticação cancelada',
+        promptMessage: 'Login com biometria',
+        fallbackLabel: 'Biometria não reconhecida',
+      });
+      if (auth.success) {
+        setIsLoading(true);
+        const { data } = await AuthServices.login(loginParams);
+        const user: User = {
+          id: data.id,
+          username: data.username,
+          feederDevices: data.feeder_devices,
+        };
+        if (isUser(user)) {
+          signIn(user);
+          await storeAsyncStorageData(
+            LOGIN_CREDENTIALS_STORAGE,
+            JSON.stringify(loginParams),
+          );
+          if (user.feederDevices.length > 0) {
+            navigation.navigate('HomeStack');
+            setFeederDevices(user.feederDevices);
+          } else
+            navigation.navigate('HomeStack', {
+              screen: 'SetupNewDevice',
+            });
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     } catch (_error) {
       const error = _error as AxiosError;
       if (error.code === 'ERR_BAD_REQUEST')
@@ -88,61 +104,65 @@ const Login = ({ navigation, route }: LoginScreenProps) => {
     style: styles.textInput,
   };
 
-  // const authenticateWithBiometry = async () => {
-  //   try {
-  //     const user = await verifyStoredUser();
-  //     if (isLoginParams(user)) {
-  //       if (verifySupportedBiometryTypes()) {
-  //         setModalMessage(
-  //           `Login por biometria.${'\n'}Deseja fazer login com o usuário ${
-  //             user.username
-  //           }?`,
-  //         );
-  //         const buttonGroup: CustomModalButtonGroup[] = [
-  //           {
-  //             onPress: () => authenticate(user),
-  //             title: 'yes',
-  //             type: 'primary',
-  //           },
-  //           {
-  //             onPress: () => setShowModal(false),
-  //             title: 'no',
-  //             type: 'critical',
-  //           },
-  //         ];
-  //         setModalButtonGroup(buttonGroup);
-  //         setShowModal(true);
-  //       }
-  //     }
-  //   } catch (error) {}
-  // };
+  const verifyStoredUser = async () => {
+    try {
+      const data = await getAsyncStorageData(LOGIN_CREDENTIALS_STORAGE);
+      if (isString(data)) {
+        return JSON.parse(data);
+      }
+    } catch (error) {}
+  };
 
-  // const verifySupportedBiometryTypes = () => {
-  //   let supported = false;
-  //   if (Platform.OS === 'android') {
-  //     TouchID.isSupported()
-  //       .then(success => (supported = true))
-  //       .catch(error => console.log('HELOOUOUO'));
-  //   }
-  //   return supported;
-  // };
+  const authenticateWithBiometry = async () => {
+    try {
+      const user = await verifyStoredUser();
+      if (isLoginParams(user)) {
+        const hasBiometricHardware =
+          await LocalAuthentication.hasHardwareAsync();
+        const hasEnrolledBiometry = await LocalAuthentication.isEnrolledAsync();
+        if (hasBiometricHardware && hasEnrolledBiometry) {
+          setModalMessage(
+            `Login por biometria.${'\n'}Deseja fazer login com o usuário ${
+              user.username
+            }?`,
+          );
+          const buttonGroup: CustomModalButtonGroup[] = [
+            {
+              onPress: () => {
+                authenticate(user);
+                setShowModal(false);
+              },
+              title: 'yes',
+              type: 'primary',
+            },
+            {
+              onPress: () => setShowModal(false),
+              title: 'no',
+              type: 'critical',
+            },
+          ];
+          setModalButtonGroup(buttonGroup);
+          setModalType('warning');
+          setShowModal(true);
+        } else {
+          setModalMessage('Nenhuma biometria encontrada.');
+          setShowModal(true);
+        }
+      }
+    } catch (error) {}
+  };
 
-  // const verifyStoredUser = async () => {
-  //   try {
-  //     const data = await getAsyncStorageData(LOGIN_CREDENTIALS_STORAGE);
-  //     if (isString(data)) {
-  //       return JSON.parse(data);
-  //     }
-  //   } catch (error) {}
-  // };
+  useEffect(() => {
+    authenticateWithBiometry();
+  }, []);
 
-  // useEffect(() => {
-  //   authenticateWithBiometry();
-  // }, []);
-
-  // useFocusEffect(() => {
-
-  // })
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('blur', () => {
+      setUsername('');
+      setPassword('');
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   return (
     <View style={styles.container}>
@@ -173,7 +193,7 @@ const Login = ({ navigation, route }: LoginScreenProps) => {
         onClose={() => {
           setShowModal(false);
         }}
-        type="error"
+        type={modalType}
         visible={showModal}
         buttonGroup={modalButtonGroup}
       />

@@ -15,6 +15,7 @@ type ButtonTitle = {
   save: string;
   close: string;
   connect: string;
+  reconnect: string;
   login: string;
   createUser: string;
   setupNewDevice: string;

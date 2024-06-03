@@ -1,7 +1,3 @@
-if (__DEV__) {
-  require('./ReactotronConfig');
-}
-
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, PermissionsAndroid, StatusBar } from 'react-native';
 import 'react-native-gesture-handler';
@@ -9,6 +5,7 @@ import 'react-native-gesture-handler';
 import AppNavigator from './src/navigator';
 import AlertModal from './src/components/AlertModal';
 import { AuthProvider } from './src/context/Auth/auth';
+import ContextsProvider from './src/context';
 
 function App(): React.JSX.Element {
   const [showModal, setShowModal] = useState(false);
@@ -77,7 +74,7 @@ function App(): React.JSX.Element {
   }, []);
 
   return (
-    <AuthProvider>
+    <ContextsProvider>
       <StatusBar barStyle={'light-content'} backgroundColor={'#302f2f'} />
       {!isLoading ? (
         <>
@@ -92,7 +89,7 @@ function App(): React.JSX.Element {
       ) : (
         <ActivityIndicator animating color={'#eef280'} size={'large'} />
       )}
-    </AuthProvider>
+    </ContextsProvider>
   );
 }
 
