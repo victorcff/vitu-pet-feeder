@@ -1,145 +1,132 @@
-/*
-  WiFiAccessPoint.ino creates a WiFi access point and provides a web server on it.
+#include <PubSubClient.h>
+#include <WiFiClientSecure.h>
+#include <WiFiManager.h>
+#include <RTClib.h>
+#include "HX711.h"
 
-  Steps:
-  1. Connect to the access point "yourAp"
-  2. Point your web browser to http://192.168.4.1/H to turn the LED on or http://192.168.4.1/L to turn it off
-     OR
-     Run raw TCP "GET /H" and "GET /L" on PuTTY terminal with 192.168.4.1 as IP address and 80 as port
+const int LOADCELL_DOUT_PIN = 16;
+const int LOADCELL_SCK_PIN = 4;
+char weight[8];
 
-  Created for arduino-esp32 on 04 July, 2018
-  by Elochukwu Ifediora (fedy0)
-*/
+const char *mqtt_broker = "broker.emqx.io";
+const char *mqtt_username = "emqx";
+const char *mqtt_password = "public";
+const int mqtt_port = 8883;
+const int qos = 1;
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiAP.h>
+int device_id;
 
-#define LED_BUILTIN 2   // Set the GPIO pin where you connected your test LED or comment this line out if your dev board has a built-in LED
+WiFiClientSecure espClient;
+PubSubClient client(espClient);
 
-// Set these to your desired credentials.
-const char *ssid = "yourAP";
-const char *password = "yourPassword";
-String header;
-String requestBody;
-String wifiSsid;
-String wifiPassword;
-String reqType;
-String uri;
+HX711 scale;
 
-WiFiServer server(80);
+Preferences preferences;
 
-void handleCredentials() {
-  WiFi.mode(WIFI_AP);
-  Serial.println("Configuring access point...");
+const char *ca_cert = R"EOF(
+-----BEGIN CERTIFICATE-----
+MIIDjjCCAnagAwIBAgIQAzrx5qcRqaC7KGSxHQn65TANBgkqhkiG9w0BAQsFADBh
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH
+MjAeFw0xMzA4MDExMjAwMDBaFw0zODAxMTUxMjAwMDBaMGExCzAJBgNVBAYTAlVT
+MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
+b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IEcyMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuzfNNNx7a8myaJCtSnX/RrohCgiN9RlUyfuI
+2/Ou8jqJkTx65qsGGmvPrC3oXgkkRLpimn7Wo6h+4FR1IAWsULecYxpsMNzaHxmx
+1x7e/dfgy5SDN67sH0NO3Xss0r0upS/kqbitOtSZpLYl6ZtrAGCSYP9PIUkY92eQ
+q2EGnI/yuum06ZIya7XzV+hdG82MHauVBJVJ8zUtluNJbd134/tJS7SsVQepj5Wz
+tCO7TG1F8PapspUwtP1MVYwnSlcUfIKdzXOS0xZKBgyMUNGPHgm+F6HmIcr9g+UQ
+vIOlCsRnKPZzFBQ9RnbDhxSJITRNrw9FDKZJobq7nMWxM4MphQIDAQABo0IwQDAP
+BgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAdBgNVHQ4EFgQUTiJUIBiV
+5uNu5g/6+rkS7QYXjzkwDQYJKoZIhvcNAQELBQADggEBAGBnKJRvDkhj6zHd6mcY
+1Yl9PMWLSn/pvtsrF9+wX3N3KjITOYFnQoQj8kVnNeyIv/iPsGEMNKSuIEyExtv4
+NeF22d+mQrvHRAiGfzZ0JFrabA0UWTW98kndth/Jsw1HKj2ZL7tcu7XUIOGZX1NG
+Fdtom/DzMNU+MeKNhJ7jitralj41E6Vf8PlwUHBHQRFXGU7Aj64GxJUTFy8bJZ91
+8rGOmaFvE7FBcf6IKshPECBV1/MUReXgRPTqh5Uykw7+U0b6LJ3/iyK5S9kJRaTe
+pLiaWN0bfVKfjllDiIGknibVb63dDcY3fe0Dkhvld1927jyNxF1WW6LZZm6zNTfl
+MrY=
+-----END CERTIFICATE-----
+)EOF";
 
-  // You can remove the password parameter if you want the AP to be open.
-  // a valid password must have more than 7 characters
-  if (!WiFi.softAP(ssid, password)) {
-    log_e("Soft AP creation failed.");
-    while(1);
+void mqtt_callback(char *topic, byte *payload, unsigned int length) {
+  Serial.print("Message arrived in topic: ");
+  Serial.println(topic);
+  char char_payload[length];
+  for (int i=0;i<length;i++) {
+    Serial.print((char)payload[i]);
+    char_payload[i] = payload[i];
   }
+  device_id = atoi(char_payload);
+  Serial.println("-----------------------");
+  if (strcmp(topic, "emqx/vitu_pet-feeder/realTimeWeight") == 0) {
+    client.publish("emqx/vitu_pet-feeder/realTimeWeightResponse", dtostrf(scale.get_units(10), 1, 2, weight));
+    Serial.println("Message published to topic: emqx/vitu_pet-feeder/realTimeWeightResponse");
+  } else if (strcmp(topic, "emqx/vitu_pet-feeder/reconnectDeviceWifi") == 0) {
+    WiFiManager wm;
+    wm.resetSettings();
+    wm.setConfigPortalTimeout(120);
+    if(!wm.startConfigPortal("VITU PET FEEDER.V1", "12345678")) {
+      Serial.println("failed to connect and hit timeout");
+      delay(3000);
+      ESP.restart();
+      delay(5000);
+    }
+    Serial.println("Connected again!!");
+    setupMqtt();
+  } else if (strcmp(topic, "emqx/vitu_pet-feeder/macAddress") == 0) {
+    delay(1000);
+    char esp32_unique_id[20];
+    itoa(ESP.getEfuseMac(), esp32_unique_id, 10);
+    bool published = client.publish("emqx/vitu_pet-feeder/macAddressResponse", esp32_unique_id);
+    Serial.print(published);
+    Serial.println("Message published to topic: emqx/vitu_pet-feeder/macAddressResponse");
+  }
+}
 
-  IPAddress myIP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
-  server.begin();
+void setupScale() {
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  scale.set_scale(-375.5);
+  scale.tare();
+}
 
-  Serial.println("Server started");
-  while(wifiSsid == "" && wifiPassword == "") {
-    WiFiClient client = server.available();   // listen for incoming clients
-    header = "";
-    requestBody = "";
-    if (client) {                             // if you get a client,
-      Serial.println("New Client.");           // print a message out the serial port
-      String currentLine = "";                // make a String to hold incoming data from the client
-      while (client.connected()) {            // loop while the client's connected
-        if (client.available()) {           // if there's bytes to read from the client,
-          char c = client.read();             // read a byte, then
-          Serial.write(c);
-          header += c;                   // print it out the serial monitor
-          if (c == '\n') {                    
-            if (currentLine.length() == 0) {
-              int contentLength = header.indexOf("Content-Length: ");
-              if (contentLength != -1) {
-                int endOfContentLength = header.indexOf("\r\n", contentLength);
-                if (endOfContentLength != -1) {
-                  contentLength = header.substring(contentLength + 16, endOfContentLength).toInt();
-                  int bodyRead = 0;
-                  while (bodyRead < contentLength && client.available()) {
-                    char c = client.read();
-                    requestBody += c;
-                    bodyRead++;
-                  }
-                }
-              }
-              client.println("HTTP/1.1 200 OK");
-              client.println("Content-type:text/html");
-              client.println();
-              client.println("bora");
-              break;
-            } else {    // if you got a newline, then clear currentLine:
-              currentLine = "";
-            }
-          } else if (c != '\r') {  // if you got anything else but a carriage return character,
-            currentLine += c;      // add it to the end of the currentLine
-          } 
-          if (currentLine.endsWith("POST /credentials")) {
-            uri = "credentials";
-            reqType = "POST";
-          } 
-        }
-      }
-      if(reqType == "POST" && uri == "credentials") {
-        String wifiSsidNotFormatted = requestBody.substring(0, 32);
-        int ssidLength = requestBody.substring(33, 35).toInt();
-        wifiSsid = wifiSsidNotFormatted.substring(0, ssidLength);
-        String wifiPasswordNotFormatted = requestBody.substring(36, 99);
-        int passwordLength = requestBody.substring(100, 102).toInt();
-        wifiPassword = wifiPasswordNotFormatted.substring(0, passwordLength);
-        Serial.print("WIFI SSID: ");
-        Serial.println(wifiSsid);
-        Serial.print("WIFI SSID LENGTH: ");
-        Serial.println(ssidLength);
-        Serial.print("WIFI PASSWORD: ");
-        Serial.println(wifiPassword);
-        Serial.print("WIFI PASSWORD LENGTH: ");
-        Serial.println(passwordLength);
-      }
-      Serial.println("---------------------");
-      Serial.println("REQUEST BODY:");
-      Serial.println(requestBody);
-      Serial.println("---------------------");
-      client.stop();
-      Serial.println("Client Disconnected.");
-      Serial.println("===================================");
+void setupMqtt() {
+  espClient.setCACert(ca_cert);
+  client.setServer(mqtt_broker, mqtt_port);
+  client.setCallback(mqtt_callback);
+  while (!client.connected()) {
+    String client_id = "esp32-client-";
+    client_id += String(WiFi.macAddress());
+    Serial.printf("The client %s connects to the public MQTT broker\n", client_id.c_str());
+    if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
+      Serial.println("Public EMQX MQTT broker connected");
+    } else {
+      Serial.print("failed with state ");
+      Serial.println(client.state());
     }
   }
-  Serial.println("CREDENCIAIS SALVAS COM SUCESSO");
+  client.subscribe("emqx/vitu_pet-feeder/realTimeWeight", qos);
+  client.subscribe("emqx/vitu_pet-feeder/reconnectDeviceWifi", qos);
+  client.subscribe("emqx/vitu_pet-feeder/macAddress", qos);
+  delay(500); 
 }
-
-void connectToWiFi() {
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(wifiSsid, wifiPassword);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("WiFi CONECTADO");
-}
-
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  WiFi.mode(WIFI_STA);
   Serial.begin(115200);
-  Serial.println();
-  //WiFi.disconnect();
-  handleCredentials();
-  connectToWiFi();
-  
+  WiFiManager wm;
+  bool res;
+  res = wm.autoConnect("VITU PET FEEDER.V1","12345678");
+  if(!res) {
+    Serial.println("Failed to connect");
+    ESP.restart();
+  }
+  else {  
+    Serial.println("Connected to WiFi! xD");
+  }
+  setupScale();
+  setupMqtt();
 }
 
 void loop() {
-  
+  client.loop();
 }
