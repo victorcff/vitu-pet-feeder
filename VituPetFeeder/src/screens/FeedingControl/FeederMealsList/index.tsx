@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, TextInputProps, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import { FeederMealsListScreenProps } from '../../../navigator/types/screenProps';
 import MealsServices from '../../../services/MealsServices';
-import { Meal, MealResponse } from '../../../types/api';
+import { ActivateMealRequest, Meal, MealResponse } from '../../../types/api';
 import { isMeal } from '../../../utils/checkTypes';
 import { useFeederDevices } from '../../../context/FeederDevices';
+import CustomTextInput from '../../../components/CustomTextInput';
 
 const FeederMealsList = ({ navigation, route }: FeederMealsListScreenProps) => {
   const { feederDevices } = useFeederDevices();
 
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [weight, setWeight] = useState('');
 
   const formatMeals = (mealsArray: MealResponse[]) => {
     return mealsArray.reduce<Meal[]>((reducedArray, item) => {
@@ -52,6 +54,28 @@ const FeederMealsList = ({ navigation, route }: FeederMealsListScreenProps) => {
   const goCreateMeal = () =>
     navigation.navigate('UpdateMeal', { action: 'create' });
 
+  const activateMeal = async () => {
+    try {
+      const params: ActivateMealRequest = {
+        weight: parseInt(weight),
+      };
+      await MealsServices.activateMeal(params);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const weightInputProps: TextInputProps = {
+    defaultValue: weight,
+    maxLength: 4,
+    onChangeText: text => setWeight(text),
+    placeholder: 'Peso da refeição',
+    placeholderTextColor: '#80f2bd6b',
+    inputMode: 'numeric',
+    textAlign: 'center',
+    style: { fontSize: 34 },
+  };
+
   const renderItem = ({ item }: { item: Meal }) => (
     <View>
       <Pressable onPress={() => goToMealDetails(item)}>
@@ -89,7 +113,7 @@ const FeederMealsList = ({ navigation, route }: FeederMealsListScreenProps) => {
         <Text style={styles.headerTitle}>{feederDevices[0]?.name}</Text>
       </View>
       {feederDevices[0]?.meals.length > 0 ? (
-        <>
+        <View style={styles.infoContainer}>
           <View>
             <FlatList
               data={feederDevices[0]?.meals}
@@ -97,15 +121,30 @@ const FeederMealsList = ({ navigation, route }: FeederMealsListScreenProps) => {
               keyExtractor={item => item.id.toString()}
             />
           </View>
-          <Icon color="#eef280" name="add-circle" size={100} />
-        </>
+          {/* <Icon
+            color="#eef280"
+            name="add-circle"
+            size={100}
+            onPress={goCreateMeal}
+          /> */}
+          <Icon color="#eef280" name="play" size={100} onPress={activateMeal} />
+        </View>
       ) : (
-        <Icon
-          color="#eef280"
-          name="add-circle"
-          size={100}
-          onPress={goCreateMeal}
-        />
+        // <Icon
+        //   color="#eef280"
+        //   name="add-circle"
+        //   size={100}
+        //   onPress={goCreateMeal}
+        // />
+
+        <>
+          <CustomTextInput
+            size="large"
+            textInputProps={weightInputProps}
+            centerAlign
+          />
+          <Icon color="#eef280" name="play" size={100} onPress={activateMeal} />
+        </>
       )}
     </View>
   );

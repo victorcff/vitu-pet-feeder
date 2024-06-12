@@ -8,6 +8,7 @@ const CustomTextInput = ({
   size,
   textInputProps,
   isPassword = false,
+  centerAlign = false,
 }: CustomTextInputProps) => {
   const { width } = useWindowDimensions();
   const [hidePassword, setHidePassword] = useState(false);
@@ -27,7 +28,7 @@ const CustomTextInput = ({
   );
 
   return (
-    <View style={styles({ size, width }).inputContainer}>
+    <View style={styles({ size, width, centerAlign }).inputContainer}>
       <TextInput
         {...textInputProps}
         style={[styles({}).textInput, textInputProps.style]}

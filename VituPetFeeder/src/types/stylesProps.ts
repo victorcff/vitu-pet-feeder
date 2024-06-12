@@ -10,6 +10,7 @@ type ButtonStyleProps = {
 type CustomTextInputStyleProps = {
   size?: Size;
   width?: number;
+  centerAlign?: boolean;
 };
 
 export type { ButtonStyleProps, CustomTextInputStyleProps };

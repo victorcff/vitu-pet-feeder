@@ -21,6 +21,7 @@ type ButtonTitle = {
   setupNewDevice: string;
   yes: string;
   no: string;
+  update: string;
 };
 
 type ModalTitle = {
@@ -49,6 +50,7 @@ type CustomTextInputProps = {
   size: Size;
   textInputProps: TextInputProps;
   isPassword?: boolean;
+  centerAlign?: boolean;
 };
 
 export type {

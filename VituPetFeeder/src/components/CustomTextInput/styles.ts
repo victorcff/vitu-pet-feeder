@@ -12,12 +12,11 @@ const styles = (props: CustomTextInputStyleProps) =>
       borderBottomWidth: 1,
       borderBottomColor: '#80f2bd',
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: props.centerAlign ? 'center' : 'space-between',
       marginVertical: 15,
     },
     textInput: {
       width: '85%',
-      // backgroundColor: '#ffffff',
     },
   });
 

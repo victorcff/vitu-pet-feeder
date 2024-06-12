@@ -25,6 +25,7 @@ const buttonTitle: ButtonTitle = {
   setupNewDevice: 'CONFIGURAR DISPOSITIVO',
   yes: 'SIM',
   no: 'NÃO',
+  update: 'ATUALIZAR',
 };
 
 const modalTitle: ModalTitle = {

@@ -2,6 +2,7 @@ import {
   CreateDeviceRequest,
   CreateDeviceResponse,
   FeederDevice,
+  FeederDeviceResponse,
   GetMacAddressResponse,
   GetRealTimeResponse,
 } from '../../types/api';
@@ -35,10 +36,15 @@ const reconnectDevice = async () => {
   return FeederDeviceInstance.post<string>(RECONNECT_DEVICE, {});
 };
 
+const getAllDevicesFromUser = async (userId: number) => {
+  return FeederDeviceInstance.get<FeederDeviceResponse[]>(`/${userId}`);
+};
+
 export {
   getRealTimeWeight,
   deleteDevice,
   createDevice,
   getMacAddress,
   reconnectDevice,
+  getAllDevicesFromUser,
 };

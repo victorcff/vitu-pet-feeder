@@ -1,4 +1,5 @@
 import {
+  activateMeal,
   createMeal,
   deleteMeal,
   getAllMealsFromDevice,
@@ -10,6 +11,7 @@ const MealsServices = {
   updateMeal,
   getAllMealsFromDevice,
   deleteMeal,
+  activateMeal,
 };
 
 export default MealsServices;

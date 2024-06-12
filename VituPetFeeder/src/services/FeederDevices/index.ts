@@ -4,6 +4,7 @@ import {
   createDevice,
   getMacAddress,
   reconnectDevice,
+  getAllDevicesFromUser,
 } from './api';
 
 const FeederDevicesServices = {
@@ -12,6 +13,7 @@ const FeederDevicesServices = {
   createDevice,
   getMacAddress,
   reconnectDevice,
+  getAllDevicesFromUser,
 };
 
 export default FeederDevicesServices;

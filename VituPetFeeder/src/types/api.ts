@@ -8,11 +8,18 @@ type CreateDeviceResponse = CreateDeviceRequest & {
   id: number;
 };
 
-type FeederDevice = {
+type FeederDeviceBase = {
   id: number;
   name: string;
-  ownerId: number;
   meals: Meal[];
+};
+
+type FeederDevice = FeederDeviceBase & {
+  ownerId: number;
+};
+
+type FeederDeviceResponse = FeederDeviceBase & {
+  owner_id: number;
 };
 
 type AuthenticateUserRequest = {
@@ -66,6 +73,10 @@ type CreateMealRequest = Omit<MealResponse, 'id'>;
 
 type UpdateMealRequest = MealResponse;
 
+type ActivateMealRequest = {
+  weight: number;
+};
+
 export type {
   CreateDeviceResponse,
   CreateDeviceRequest,
@@ -81,4 +92,6 @@ export type {
   MealResponse,
   CreateMealRequest,
   UpdateMealRequest,
+  FeederDeviceResponse,
+  ActivateMealRequest,
 };

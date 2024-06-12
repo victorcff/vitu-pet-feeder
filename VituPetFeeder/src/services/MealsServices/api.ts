@@ -1,8 +1,10 @@
 import {
+  ActivateMealRequest,
   CreateMealRequest,
   MealResponse,
   UpdateMealRequest,
 } from '../../types/api';
+import { ACTIVATE_MEAL } from './endpoints';
 import MealsInstance from './instance';
 
 const getAllMealsFromDevice = async (deviceId: number) => {
@@ -27,4 +29,14 @@ const deleteMeal = async (mealId: number) => {
   return MealsInstance.delete(`/${mealId}`);
 };
 
-export { getAllMealsFromDevice, createMeal, updateMeal, deleteMeal };
+const activateMeal = async (params: ActivateMealRequest) => {
+  return MealsInstance.post(ACTIVATE_MEAL, params);
+};
+
+export {
+  getAllMealsFromDevice,
+  createMeal,
+  updateMeal,
+  deleteMeal,
+  activateMeal,
+};
